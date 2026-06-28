@@ -1,0 +1,3 @@
+F:\CMake\bin\cmake.exe -E rm -f CMakeFiles\embed_bytecode.dir/objects.a
+F:\msys64\clang64\bin\llvm-ar.exe qc CMakeFiles\embed_bytecode.dir/objects.a @CMakeFiles\embed_bytecode.dir\objects1.rsp
+F:\msys64\clang64\bin\c++.exe -O3 -DNDEBUG -Wl,--whole-archive CMakeFiles\embed_bytecode.dir/objects.a -Wl,--no-whole-archive -o embed_bytecode.exe -Wl,--out-implib,libembed_bytecode.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\embed_bytecode.dir\linkLibs.rsp

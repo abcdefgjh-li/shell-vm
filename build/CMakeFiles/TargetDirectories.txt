@@ -1,0 +1,9 @@
+D:/cpp/shell-vm/build/CMakeFiles/shellvm.dir
+D:/cpp/shell-vm/build/CMakeFiles/basic_demo.dir
+D:/cpp/shell-vm/build/CMakeFiles/embed_bytecode.dir
+D:/cpp/shell-vm/build/CMakeFiles/edit_cache.dir
+D:/cpp/shell-vm/build/CMakeFiles/rebuild_cache.dir
+D:/cpp/shell-vm/build/CMakeFiles/list_install_components.dir
+D:/cpp/shell-vm/build/CMakeFiles/install.dir
+D:/cpp/shell-vm/build/CMakeFiles/install/local.dir
+D:/cpp/shell-vm/build/CMakeFiles/install/strip.dir

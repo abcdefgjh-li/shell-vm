@@ -1,0 +1,202 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeDetermineSystem.cmake:204 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The system is: Windows - 10.0.26200 - AMD64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: F:/msys64/clang64/bin/c++.exe 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.exe"
+      
+      The CXX compiler identification is Clang, found in:
+        D:/cpp/shell-vm/build/CMakeFiles/3.26.6/CompilerIdCXX/a.exe
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo"
+      binary: "D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo
+        
+        Run Build Command(s):F:/CMake/bin/cmake.exe -E env VERBOSE=1 F:/msys64/clang64/bin/mingw32-make.exe -f Makefile cmTC_9db46/fast && F:/msys64/clang64/bin/mingw32-make.exe  -f CMakeFiles\\cmTC_9db46.dir\\build.make CMakeFiles/cmTC_9db46.dir/build
+        mingw32-make[1]: Entering directory 'D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo'
+        Building CXX object CMakeFiles/cmTC_9db46.dir/CMakeCXXCompilerABI.cpp.obj
+        F:\\msys64\\clang64\\bin\\c++.exe   -v -MD -MT CMakeFiles/cmTC_9db46.dir/CMakeCXXCompilerABI.cpp.obj -MF CMakeFiles\\cmTC_9db46.dir\\CMakeCXXCompilerABI.cpp.obj.d -o CMakeFiles\\cmTC_9db46.dir\\CMakeCXXCompilerABI.cpp.obj -c F:\\CMake\\share\\cmake-3.26\\Modules\\CMakeCXXCompilerABI.cpp
+        clang version 21.1.7
+        Target: x86_64-w64-windows-gnu
+        Thread model: posix
+        InstalledDir: F:/msys64/clang64/bin
+         (in-process)
+         "F:/msys64/clang64/bin/c++.exe" -cc1 -triple x86_64-w64-windows-gnu -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=none -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -mms-bitfields -funwind-tables=2 -fno-sized-deallocation -fno-use-init-array -target-cpu x86-64 -tune-cpu generic -debugger-tuning=gdb -fdebug-compilation-dir=D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo -v -fcoverage-compilation-dir=D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo -resource-dir F:/msys64/clang64/lib/clang/21 -dependency-file "CMakeFiles\\\\cmTC_9db46.dir\\\\CMakeCXXCompilerABI.cpp.obj.d" -MT CMakeFiles/cmTC_9db46.dir/CMakeCXXCompilerABI.cpp.obj -sys-header-deps -internal-isystem F:/msys64/clang64/x86_64-w64-mingw32/include/c++/v1 -internal-isystem F:/msys64/clang64/include/c++/v1 -internal-isystem F:/msys64/clang64/lib/clang/21/include -internal-isystem F:/msys64/clang64/x86_64-w64-mingw32/include -internal-isystem F:/msys64/clang64/x86_64-w64-mingw32/usr/include -internal-isystem F:/msys64/clang64/include -fdeprecated-macro -ferror-limit 19 -fno-use-cxa-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -exception-model=seh -faddrsig -o "CMakeFiles\\\\cmTC_9db46.dir\\\\CMakeCXXCompilerABI.cpp.obj" -x c++ "F:\\\\CMake\\\\share\\\\cmake-3.26\\\\Modules\\\\CMakeCXXCompilerABI.cpp"
+        clang -cc1 version 21.1.7 based upon LLVM 21.1.7 default target x86_64-w64-windows-gnu
+        ignoring nonexistent directory "F:/msys64/clang64/x86_64-w64-mingw32/include/c++/v1"
+        ignoring nonexistent directory "F:/msys64/clang64/x86_64-w64-mingw32/include"
+        ignoring nonexistent directory "F:/msys64/clang64/x86_64-w64-mingw32/usr/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         F:/msys64/clang64/include/c++/v1
+         F:/msys64/clang64/lib/clang/21/include
+         F:/msys64/clang64/include
+        End of search list.
+        Linking CXX executable cmTC_9db46.exe
+        F:\\CMake\\bin\\cmake.exe -E cmake_link_script CMakeFiles\\cmTC_9db46.dir\\link.txt --verbose=1
+        F:\\CMake\\bin\\cmake.exe -E rm -f CMakeFiles\\cmTC_9db46.dir/objects.a
+        F:\\msys64\\clang64\\bin\\llvm-ar.exe qc CMakeFiles\\cmTC_9db46.dir/objects.a @CMakeFiles\\cmTC_9db46.dir\\objects1.rsp
+        F:\\msys64\\clang64\\bin\\c++.exe  -v -Wl,--whole-archive CMakeFiles\\cmTC_9db46.dir/objects.a -Wl,--no-whole-archive -o cmTC_9db46.exe -Wl,--out-implib,libcmTC_9db46.dll.a -Wl,--major-image-version,0,--minor-image-version,0 
+        clang version 21.1.7
+        Target: x86_64-w64-windows-gnu
+        Thread model: posix
+        InstalledDir: F:/msys64/clang64/bin
+         "F:/msys64/clang64/bin/ld.lld" -m i386pep -Bdynamic -o cmTC_9db46.exe F:/msys64/clang64/lib/crt2.o F:/msys64/clang64/lib/crtbegin.o -LF:/msys64/clang64/x86_64-w64-mingw32/lib -LF:/msys64/clang64/x86_64-w64-mingw32/mingw/lib -LF:/msys64/clang64/lib -LF:/msys64/clang64/lib/clang/21/lib/windows --whole-archive "CMakeFiles\\\\cmTC_9db46.dir/objects.a" --no-whole-archive --out-implib libcmTC_9db46.dll.a --major-image-version 0 --minor-image-version 0 -lc++ -lmingw32 F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a -lunwind -lmoldname -lmingwex -lmsvcrt -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a -lunwind -lmoldname -lmingwex -lmsvcrt -lkernel32 F:/msys64/clang64/lib/crtend.o
+        mingw32-make[1]: Leaving directory 'D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo'
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerABI.cmake:127 (message)"
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [F:/msys64/clang64/include/c++/v1]
+          add: [F:/msys64/clang64/lib/clang/21/include]
+          add: [F:/msys64/clang64/include]
+        end of search list found
+        collapse include dir [F:/msys64/clang64/include/c++/v1] ==> [F:/msys64/clang64/include/c++/v1]
+        collapse include dir [F:/msys64/clang64/lib/clang/21/include] ==> [F:/msys64/clang64/lib/clang/21/include]
+        collapse include dir [F:/msys64/clang64/include] ==> [F:/msys64/clang64/include]
+        implicit include dirs: [F:/msys64/clang64/include/c++/v1;F:/msys64/clang64/lib/clang/21/include;F:/msys64/clang64/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeDetermineCompilerABI.cmake:152 (message)"
+      - "F:/CMake/share/cmake-3.26/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld\\.lld\\.exe|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo]
+        ignore line: []
+        ignore line: [Run Build Command(s):F:/CMake/bin/cmake.exe -E env VERBOSE=1 F:/msys64/clang64/bin/mingw32-make.exe -f Makefile cmTC_9db46/fast && F:/msys64/clang64/bin/mingw32-make.exe  -f CMakeFiles\\cmTC_9db46.dir\\build.make CMakeFiles/cmTC_9db46.dir/build]
+        ignore line: [mingw32-make[1]: Entering directory 'D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo']
+        ignore line: [Building CXX object CMakeFiles/cmTC_9db46.dir/CMakeCXXCompilerABI.cpp.obj]
+        ignore line: [F:\\msys64\\clang64\\bin\\c++.exe   -v -MD -MT CMakeFiles/cmTC_9db46.dir/CMakeCXXCompilerABI.cpp.obj -MF CMakeFiles\\cmTC_9db46.dir\\CMakeCXXCompilerABI.cpp.obj.d -o CMakeFiles\\cmTC_9db46.dir\\CMakeCXXCompilerABI.cpp.obj -c F:\\CMake\\share\\cmake-3.26\\Modules\\CMakeCXXCompilerABI.cpp]
+        ignore line: [clang version 21.1.7]
+        ignore line: [Target: x86_64-w64-windows-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: F:/msys64/clang64/bin]
+        ignore line: [ (in-process)]
+        ignore line: [ "F:/msys64/clang64/bin/c++.exe" -cc1 -triple x86_64-w64-windows-gnu -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=none -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -mms-bitfields -funwind-tables=2 -fno-sized-deallocation -fno-use-init-array -target-cpu x86-64 -tune-cpu generic -debugger-tuning=gdb -fdebug-compilation-dir=D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo -v -fcoverage-compilation-dir=D:/cpp/shell-vm/build/CMakeFiles/CMakeScratch/TryCompile-xp5afo -resource-dir F:/msys64/clang64/lib/clang/21 -dependency-file "CMakeFiles\\\\cmTC_9db46.dir\\\\CMakeCXXCompilerABI.cpp.obj.d" -MT CMakeFiles/cmTC_9db46.dir/CMakeCXXCompilerABI.cpp.obj -sys-header-deps -internal-isystem F:/msys64/clang64/x86_64-w64-mingw32/include/c++/v1 -internal-isystem F:/msys64/clang64/include/c++/v1 -internal-isystem F:/msys64/clang64/lib/clang/21/include -internal-isystem F:/msys64/clang64/x86_64-w64-mingw32/include -internal-isystem F:/msys64/clang64/x86_64-w64-mingw32/usr/include -internal-isystem F:/msys64/clang64/include -fdeprecated-macro -ferror-limit 19 -fno-use-cxa-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -exception-model=seh -faddrsig -o "CMakeFiles\\\\cmTC_9db46.dir\\\\CMakeCXXCompilerABI.cpp.obj" -x c++ "F:\\\\CMake\\\\share\\\\cmake-3.26\\\\Modules\\\\CMakeCXXCompilerABI.cpp"]
+        ignore line: [clang -cc1 version 21.1.7 based upon LLVM 21.1.7 default target x86_64-w64-windows-gnu]
+        ignore line: [ignoring nonexistent directory "F:/msys64/clang64/x86_64-w64-mingw32/include/c++/v1"]
+        ignore line: [ignoring nonexistent directory "F:/msys64/clang64/x86_64-w64-mingw32/include"]
+        ignore line: [ignoring nonexistent directory "F:/msys64/clang64/x86_64-w64-mingw32/usr/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ F:/msys64/clang64/include/c++/v1]
+        ignore line: [ F:/msys64/clang64/lib/clang/21/include]
+        ignore line: [ F:/msys64/clang64/include]
+        ignore line: [End of search list.]
+        ignore line: [Linking CXX executable cmTC_9db46.exe]
+        ignore line: [F:\\CMake\\bin\\cmake.exe -E cmake_link_script CMakeFiles\\cmTC_9db46.dir\\link.txt --verbose=1]
+        ignore line: [F:\\CMake\\bin\\cmake.exe -E rm -f CMakeFiles\\cmTC_9db46.dir/objects.a]
+        ignore line: [F:\\msys64\\clang64\\bin\\llvm-ar.exe qc CMakeFiles\\cmTC_9db46.dir/objects.a @CMakeFiles\\cmTC_9db46.dir\\objects1.rsp]
+        ignore line: [F:\\msys64\\clang64\\bin\\c++.exe  -v -Wl --whole-archive CMakeFiles\\cmTC_9db46.dir/objects.a -Wl --no-whole-archive -o cmTC_9db46.exe -Wl --out-implib libcmTC_9db46.dll.a -Wl --major-image-version 0 --minor-image-version 0 ]
+        ignore line: [clang version 21.1.7]
+        ignore line: [Target: x86_64-w64-windows-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: F:/msys64/clang64/bin]
+        link line: [ "F:/msys64/clang64/bin/ld.lld" -m i386pep -Bdynamic -o cmTC_9db46.exe F:/msys64/clang64/lib/crt2.o F:/msys64/clang64/lib/crtbegin.o -LF:/msys64/clang64/x86_64-w64-mingw32/lib -LF:/msys64/clang64/x86_64-w64-mingw32/mingw/lib -LF:/msys64/clang64/lib -LF:/msys64/clang64/lib/clang/21/lib/windows --whole-archive "CMakeFiles\\\\cmTC_9db46.dir/objects.a" --no-whole-archive --out-implib libcmTC_9db46.dll.a --major-image-version 0 --minor-image-version 0 -lc++ -lmingw32 F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a -lunwind -lmoldname -lmingwex -lmsvcrt -ladvapi32 -lshell32 -luser32 -lkernel32 -lmingw32 F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a -lunwind -lmoldname -lmingwex -lmsvcrt -lkernel32 F:/msys64/clang64/lib/crtend.o]
+          arg [F:/msys64/clang64/bin/ld.lld] ==> ignore
+          arg [-m] ==> ignore
+          arg [i386pep] ==> ignore
+          arg [-Bdynamic] ==> search dynamic
+          arg [-o] ==> ignore
+          arg [cmTC_9db46.exe] ==> ignore
+          arg [F:/msys64/clang64/lib/crt2.o] ==> obj [F:/msys64/clang64/lib/crt2.o]
+          arg [F:/msys64/clang64/lib/crtbegin.o] ==> obj [F:/msys64/clang64/lib/crtbegin.o]
+          arg [-LF:/msys64/clang64/x86_64-w64-mingw32/lib] ==> dir [F:/msys64/clang64/x86_64-w64-mingw32/lib]
+          arg [-LF:/msys64/clang64/x86_64-w64-mingw32/mingw/lib] ==> dir [F:/msys64/clang64/x86_64-w64-mingw32/mingw/lib]
+          arg [-LF:/msys64/clang64/lib] ==> dir [F:/msys64/clang64/lib]
+          arg [-LF:/msys64/clang64/lib/clang/21/lib/windows] ==> dir [F:/msys64/clang64/lib/clang/21/lib/windows]
+          arg [--whole-archive] ==> ignore
+          arg [CMakeFiles\\\\cmTC_9db46.dir/objects.a] ==> ignore
+          arg [--no-whole-archive] ==> ignore
+          arg [--out-implib] ==> ignore
+          arg [libcmTC_9db46.dll.a] ==> ignore
+          arg [--major-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [--minor-image-version] ==> ignore
+          arg [0] ==> ignore
+          arg [-lc++] ==> lib [c++]
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a] ==> lib [F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a]
+          arg [-lunwind] ==> lib [unwind]
+          arg [-lmoldname] ==> lib [moldname]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-ladvapi32] ==> lib [advapi32]
+          arg [-lshell32] ==> lib [shell32]
+          arg [-luser32] ==> lib [user32]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [-lmingw32] ==> lib [mingw32]
+          arg [F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a] ==> lib [F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a]
+          arg [-lunwind] ==> lib [unwind]
+          arg [-lmoldname] ==> lib [moldname]
+          arg [-lmingwex] ==> lib [mingwex]
+          arg [-lmsvcrt] ==> lib [msvcrt]
+          arg [-lkernel32] ==> lib [kernel32]
+          arg [F:/msys64/clang64/lib/crtend.o] ==> obj [F:/msys64/clang64/lib/crtend.o]
+        remove lib [F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a]
+        remove lib [msvcrt]
+        remove lib [F:/msys64/clang64/lib/clang/21/lib/windows/libclang_rt.builtins-x86_64.a]
+        remove lib [msvcrt]
+        collapse library dir [F:/msys64/clang64/x86_64-w64-mingw32/lib] ==> [F:/msys64/clang64/x86_64-w64-mingw32/lib]
+        collapse library dir [F:/msys64/clang64/x86_64-w64-mingw32/mingw/lib] ==> [F:/msys64/clang64/x86_64-w64-mingw32/mingw/lib]
+        collapse library dir [F:/msys64/clang64/lib] ==> [F:/msys64/clang64/lib]
+        collapse library dir [F:/msys64/clang64/lib/clang/21/lib/windows] ==> [F:/msys64/clang64/lib/clang/21/lib/windows]
+        implicit libs: [c++;mingw32;unwind;moldname;mingwex;advapi32;shell32;user32;kernel32;mingw32;unwind;moldname;mingwex;kernel32]
+        implicit objs: [F:/msys64/clang64/lib/crt2.o;F:/msys64/clang64/lib/crtbegin.o;F:/msys64/clang64/lib/crtend.o]
+        implicit dirs: [F:/msys64/clang64/x86_64-w64-mingw32/lib;F:/msys64/clang64/x86_64-w64-mingw32/mingw/lib;F:/msys64/clang64/lib;F:/msys64/clang64/lib/clang/21/lib/windows]
+        implicit fwks: []
+      
+      
+...

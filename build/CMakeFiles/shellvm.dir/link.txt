@@ -1,0 +1,2 @@
+F:\msys64\clang64\bin\llvm-ar.exe qc libshellvm.a CMakeFiles/shellvm.dir/src/vm_core.cpp.obj CMakeFiles/shellvm.dir/src/compiler.cpp.obj CMakeFiles/shellvm.dir/src/runtime.cpp.obj
+F:\msys64\clang64\bin\llvm-ranlib.exe libshellvm.a

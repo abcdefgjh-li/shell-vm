@@ -14,17 +14,17 @@
 #include <fstream>
 #include <thread>
 #include <mutex>
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
 #include <direct.h>
-#define popen _popen
-#define pclose _pclose
 #else
 #include <unistd.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <signal.h>
+#include <errno.h>
 #endif
 
 namespace shellvm {
@@ -70,6 +70,67 @@ std::string shellQuoteArg(const std::string& arg) {
         escaped += ch;
     }
     return "\"" + escaped + "\"";
+}
+
+CommandResult executeExternalCommandArgv(
+    const std::string& command,
+    const std::vector<std::string>& args) {
+
+#ifdef _WIN32
+    (void)command;
+    (void)args;
+    return CommandResult(127, "", "Windows runtime path disabled; use Android target");
+#else
+    int stdoutPipe[2];
+    if (pipe(stdoutPipe) != 0) {
+        return CommandResult(127, "", "Failed to create stdout pipe");
+    }
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        close(stdoutPipe[0]);
+        close(stdoutPipe[1]);
+        return CommandResult(127, "", "Failed to fork");
+    }
+
+    if (pid == 0) {
+        dup2(stdoutPipe[1], STDOUT_FILENO);
+        close(stdoutPipe[0]);
+        close(stdoutPipe[1]);
+
+        std::vector<char*> argv;
+        argv.reserve(args.size() + 2);
+        argv.push_back(const_cast<char*>(command.c_str()));
+        for (const auto& arg : args) {
+            argv.push_back(const_cast<char*>(arg.c_str()));
+        }
+        argv.push_back(nullptr);
+
+        execvp(command.c_str(), argv.data());
+        _exit(errno == ENOENT ? 127 : 126);
+    }
+
+    close(stdoutPipe[1]);
+
+    std::string output;
+    char buffer[256];
+    ssize_t bytesRead = 0;
+    while ((bytesRead = read(stdoutPipe[0], buffer, sizeof(buffer))) > 0) {
+        output.append(buffer, buffer + bytesRead);
+    }
+    close(stdoutPipe[0]);
+
+    int status = 0;
+    waitpid(pid, &status, 0);
+    int exitCode = 127;
+    if (WIFEXITED(status)) {
+        exitCode = WEXITSTATUS(status);
+    } else if (WIFSIGNALED(status)) {
+        exitCode = 128 + WTERMSIG(status);
+    }
+
+    return CommandResult(exitCode, output, "");
+#endif
 }
 
 int64_t readArithmeticVariable(const std::string& name, VM& vm) {
@@ -604,34 +665,15 @@ CommandResult Runtime::executeCommand(
         return result;
     }
 
-    // 执行外部命令
-    std::string fullCommand = expandedCommand;
-    for (const auto& arg : expandedArgs) {
-        fullCommand += " " + shellQuoteArg(arg);
-    }
-
-    FILE* pipe = popen(fullCommand.c_str(), "r");
-    if (!pipe) {
-        return CommandResult(127, "", "Failed to execute command");
-    }
-
-    std::string output;
-    char buffer[128];
-    while (fgets(buffer, sizeof(buffer), pipe) != nullptr) {
-        output += buffer;
-    }
-
-    int exitCode = pclose(pipe);
-#ifdef _WIN32
-    exitCode >>= 8;  // Windows返回值在高8位
-#endif
+    // 外部命令必须走 command + argv[] 模型，不能退化成整条 shell 字符串。
+    CommandResult result = executeExternalCommandArgv(expandedCommand, expandedArgs);
 
     if (isTraceEnabled()) {
-        std::cerr << "[shellvm-trace] CMD result=" << exitCode
-                  << " builtin=0 stdout_size=" << output.size() << "\n";
+        std::cerr << "[shellvm-trace] CMD result=" << result.exitCode
+                  << " builtin=0 stdout_size=" << result.stdout_output.size() << "\n";
     }
 
-    return CommandResult(exitCode, output, "");
+    return result;
 }
 
 CommandResult Runtime::executePipeline(
@@ -715,37 +757,10 @@ int Runtime::executeAsync(
         return -1;
     }
 
-    std::string fullCommand = expandedCommand;
-    for (const auto& arg : expandedArgs) {
-        fullCommand += " " + shellQuoteArg(arg);
-    }
-
 #ifdef _WIN32
-    STARTUPINFOA si;
-    PROCESS_INFORMATION pi;
-
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-
-    if (!CreateProcessA(
-        NULL,
-        const_cast<LPSTR>(fullCommand.c_str()),
-        NULL,
-        NULL,
-        FALSE,
-        CREATE_NEW_PROCESS_GROUP,
-        NULL,
-        NULL,
-        &si,
-        &pi)) {
-        return -1;
-    }
-
-    CloseHandle(pi.hProcess);
-    CloseHandle(pi.hThread);
-
-    return static_cast<int>(pi.dwProcessId);
+    (void)expandedCommand;
+    (void)expandedArgs;
+    return -1;
 #else
     pid_t pid = fork();
     if (pid == 0) {

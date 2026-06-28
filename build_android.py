@@ -40,7 +40,7 @@ SOURCES = [
 INCLUDE_DIRS = ["include"]
 
 # Target ABIs
-TARGET_ABIS = ["arm64-v8a", "armeabi-v7a"]
+TARGET_ABIS = ["arm64-v8a"]
 
 # Compiler flags
 CFLAGS = [
@@ -373,7 +373,7 @@ def build(abus=None, use_ndk_build=True, script_path=SAFE_SCRIPT):
         print("[DONE] Build succeeded")
         print("=" * 60)
         print()
-        print("Generated executables:")
+        print("Generated bundles:")
         for abi in (abus or TARGET_ABIS):
             exe = build_dir / "libs" / abi / BUNDLE_OUTPUT
             if exe.exists():

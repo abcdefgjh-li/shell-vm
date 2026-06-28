@@ -44,16 +44,16 @@ cmake --build build --target embed_bytecode
 
 ## Android 打包
 
-默认脚本已切换为 `test.sh`，可直接打包：
+默认脚本已切换为 `test.sh`，默认打包架构为 `arm64-v8a`，可直接执行：
 
 ```bash
-python build_android.py --abi arm64-v8a --clang
+python build_android.py --clang
 ```
 
 如果需要指定其他脚本：
 
 ```bash
-python build_android.py --abi arm64-v8a --clang --script .\your_script.sh
+python build_android.py --clang --script .\your_script.sh
 ```
 
 生成后的可执行文件位于：

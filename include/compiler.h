@@ -104,6 +104,7 @@ private:
     Token readOperator();
     Token readDollarExpr();
     Token readPath();        // 读取路径如 /dev/null
+    Token readPlusWord();    // 读取 +%s / +"%Y..." 这类参数
     Token readOption();      // 读取选项如 -0 --help -e
     TokenType lookupKeyword(const std::string& id) const;
 
@@ -247,6 +248,7 @@ private:
     static void compilePipeline(ASTNodePtr node, InstructionList& instructions);
     static void compileAssignment(ASTNodePtr node, InstructionList& instructions);
     static void compileBinaryOp(ASTNodePtr node, InstructionList& instructions);
+    static void compileUnaryOp(ASTNodePtr node, InstructionList& instructions);
     static void compileIfStatement(ASTNodePtr node, InstructionList& instructions);
     static void compileWhileStatement(ASTNodePtr node, InstructionList& instructions);
     static void compileUntilStatement(ASTNodePtr node, InstructionList& instructions);

@@ -37,11 +37,26 @@ static std::mutex runtimeMutex;
 
 namespace {
 
+static constexpr char kLiteralMarkerStart = '\x1D';
+static constexpr char kLiteralMarkerEnd = '\x1E';
+
 std::string trimCommandSubstitutionOutput(std::string text) {
     while (!text.empty() && (text.back() == '\n' || text.back() == '\r')) {
         text.pop_back();
     }
     return text;
+}
+
+std::string stripLiteralMarkers(const std::string& text) {
+    std::string stripped;
+    stripped.reserve(text.size());
+    for (char ch : text) {
+        if (ch == kLiteralMarkerStart || ch == kLiteralMarkerEnd) {
+            continue;
+        }
+        stripped += ch;
+    }
+    return stripped;
 }
 
 bool isTraceEnabled() {
@@ -70,6 +85,49 @@ std::string shellQuoteArg(const std::string& arg) {
         escaped += ch;
     }
     return "\"" + escaped + "\"";
+}
+
+bool isAbsolutePath(const std::string& path) {
+    if (path.empty()) {
+        return false;
+    }
+    if (path[0] == '/' || path[0] == '\\') {
+        return true;
+    }
+    return path.size() > 1 && path[1] == ':';
+}
+
+std::string joinPath(const std::string& base, const std::string& name) {
+    if (base.empty()) {
+        return name;
+    }
+    if (name.empty()) {
+        return base;
+    }
+
+    char last = base.back();
+    if (last == '/' || last == '\\') {
+        return base + name;
+    }
+    return base + "/" + name;
+}
+
+std::string resolvePathFromCwd(const std::string& path) {
+    if (path.empty() || isAbsolutePath(path)) {
+        return path;
+    }
+
+#ifdef _WIN32
+    char buffer[MAX_PATH];
+    GetCurrentDirectoryA(MAX_PATH, buffer);
+    return joinPath(std::string(buffer), path);
+#else
+    char buffer[PATH_MAX];
+    if (getcwd(buffer, sizeof(buffer)) == nullptr) {
+        return path;
+    }
+    return joinPath(std::string(buffer), path);
+#endif
 }
 
 CommandResult executeExternalCommandArgv(
@@ -404,6 +462,23 @@ std::string expandParameterExpression(const std::string& expr, VM& vm) {
         return "";
     }
 
+    auto decodeShellLiteral = [](const std::string& text) {
+        std::string decoded;
+        decoded.reserve(text.size());
+        for (size_t i = 0; i < text.size(); ++i) {
+            if (text[i] == '\\' && i + 1 < text.size()) {
+                char next = text[i + 1];
+                if (next == '"' || next == '\'' || next == '\\') {
+                    decoded += next;
+                    ++i;
+                    continue;
+                }
+            }
+            decoded += text[i];
+        }
+        return decoded;
+    };
+
     if (expr[0] == '#') {
         return std::to_string(vm.getVariable(expr.substr(1)).asString().size());
     }
@@ -413,6 +488,29 @@ std::string expandParameterExpression(const std::string& expr, VM& vm) {
         std::string varName = expr.substr(0, defaultPos);
         std::string current = vm.getVariable(varName).asString();
         return current.empty() ? expr.substr(defaultPos + 2) : current;
+    }
+
+    size_t suffixTrimPos = expr.find('%');
+    if (suffixTrimPos != std::string::npos) {
+        std::string varName = expr.substr(0, suffixTrimPos);
+        std::string suffix = decodeShellLiteral(expr.substr(suffixTrimPos + 1));
+        std::string current = vm.getVariable(varName).asString();
+        if (!suffix.empty() && current.size() >= suffix.size() &&
+            current.compare(current.size() - suffix.size(), suffix.size(), suffix) == 0) {
+            current.erase(current.size() - suffix.size());
+        }
+        return current;
+    }
+
+    size_t prefixTrimPos = expr.find('#');
+    if (prefixTrimPos != std::string::npos) {
+        std::string varName = expr.substr(0, prefixTrimPos);
+        std::string prefix = decodeShellLiteral(expr.substr(prefixTrimPos + 1));
+        std::string current = vm.getVariable(varName).asString();
+        if (!prefix.empty() && current.rfind(prefix, 0) == 0) {
+            current.erase(0, prefix.size());
+        }
+        return current;
     }
 
     size_t assignPos = expr.find('=');
@@ -481,8 +579,38 @@ std::string expandCommandSubstitution(const std::string& commandText, VM& vm) {
 std::string expandString(const std::string& str, VM& vm) {
     std::string result;
     size_t i = 0;
+    bool inSingleQuote = false;
+    bool inDoubleQuote = false;
 
     while (i < str.size()) {
+        if (str[i] == kLiteralMarkerStart) {
+            ++i;
+            while (i < str.size() && str[i] != kLiteralMarkerEnd) {
+                result += str[i++];
+            }
+            if (i < str.size() && str[i] == kLiteralMarkerEnd) {
+                ++i;
+            }
+            continue;
+        }
+
+        if (!inDoubleQuote && str[i] == '\'') {
+            inSingleQuote = !inSingleQuote;
+            result += str[i++];
+            continue;
+        }
+
+        if (!inSingleQuote && str[i] == '"') {
+            inDoubleQuote = !inDoubleQuote;
+            result += str[i++];
+            continue;
+        }
+
+        if (inSingleQuote) {
+            result += str[i++];
+            continue;
+        }
+
         if (str[i] != '$' || i + 1 >= str.size()) {
             result += str[i++];
             continue;
@@ -577,7 +705,7 @@ std::string expandString(const std::string& str, VM& vm) {
         result += str[i++];
     }
 
-    return result;
+    return stripLiteralMarkers(result);
 }
 
 std::vector<std::string> expandArgs(const std::vector<std::string>& args, VM& vm) {
@@ -653,6 +781,55 @@ CommandResult Runtime::executeCommand(
     // 检查沙箱模式
     if (sandboxMode_ && whitelistEnabled_ && !isWhitelisted(expandedCommand)) {
         return CommandResult(127, "", "Command not allowed in sandbox mode");
+    }
+
+    if (expandedCommand == "__shellvm_pipeline__") {
+        if (expandedArgs.empty()) {
+            return CommandResult(127, "", "Invalid pipeline encoding");
+        }
+
+        size_t index = 0;
+        int commandCount = 0;
+        try {
+            commandCount = std::stoi(expandedArgs[index++]);
+        } catch (...) {
+            return CommandResult(127, "", "Invalid pipeline command count");
+        }
+
+        std::string fullCommand;
+        for (int cmdIndex = 0; cmdIndex < commandCount; ++cmdIndex) {
+            if (index + 1 >= expandedArgs.size()) {
+                return CommandResult(127, "", "Invalid pipeline payload");
+            }
+
+            std::string cmdName = expandedArgs[index++];
+            int argCount = 0;
+            try {
+                argCount = std::stoi(expandedArgs[index++]);
+            } catch (...) {
+                return CommandResult(127, "", "Invalid pipeline arg count");
+            }
+
+            if (!fullCommand.empty()) {
+                fullCommand += " | ";
+            }
+
+            fullCommand += shellCommandToken(cmdName);
+            for (int argIndex = 0; argIndex < argCount; ++argIndex) {
+                if (index >= expandedArgs.size()) {
+                    return CommandResult(127, "", "Invalid pipeline arg payload");
+                }
+                fullCommand += " ";
+                fullCommand += shellQuoteArg(expandedArgs[index++]);
+            }
+        }
+
+        CommandResult result = executeShellCommandText(fullCommand);
+        if (isTraceEnabled()) {
+            std::cerr << "[shellvm-trace] CMD result=" << result.exitCode
+                      << " builtin=0 stdout_size=" << result.stdout_output.size() << "\n";
+        }
+        return result;
     }
 
     // 检查是否为内置命令
@@ -1198,12 +1375,12 @@ bool Runtime::isPathAllowed(const std::string& path) const {
 // ============================================================================
 
 bool Runtime::fileExists(const std::string& path) const {
-    std::ifstream file(path);
+    std::ifstream file(resolvePathFromCwd(path), std::ios::binary);
     return file.good();
 }
 
 bool Runtime::readFile(const std::string& path, std::string& content) const {
-    std::ifstream file(path, std::ios::binary);
+    std::ifstream file(resolvePathFromCwd(path), std::ios::binary);
     if (!file.is_open()) {
         return false;
     }
@@ -1216,7 +1393,7 @@ bool Runtime::readFile(const std::string& path, std::string& content) const {
 }
 
 bool Runtime::writeFile(const std::string& path, const std::string& content) const {
-    std::ofstream file(path, std::ios::binary);
+    std::ofstream file(resolvePathFromCwd(path), std::ios::binary);
     if (!file.is_open()) {
         return false;
     }
@@ -1226,10 +1403,11 @@ bool Runtime::writeFile(const std::string& path, const std::string& content) con
 }
 
 bool Runtime::deleteFile(const std::string& path) {
+    std::string resolved = resolvePathFromCwd(path);
 #ifdef _WIN32
-    return DeleteFileA(path.c_str()) != 0;
+    return DeleteFileA(resolved.c_str()) != 0;
 #else
-    return unlink(path.c_str()) == 0;
+    return unlink(resolved.c_str()) == 0;
 #endif
 }
 

@@ -675,6 +675,12 @@ bool VM::executeInstruction() {
             break;
         }
 
+        case OpCode::STR_EXPAND: {
+            Value str = pop();
+            push(Value(Runtime::expandVariables(str.asString(), *this)));
+            break;
+        }
+
         // ====================================================================
         // 数组操作
         // ====================================================================

@@ -68,7 +68,6 @@ EMBED_TOOL_TARGET = "embed_bytecode"
 EMBED_RUNNER_SOURCE = "embedded_runner.cpp"
 SAFE_SCRIPT = "test.sh"
 BUNDLE_SYMBOL = "kEmbeddedBytecode"
-BUNDLE_OUTPUT = "shellvm_bundle"
 
 
 # ============================================================================
@@ -182,6 +181,22 @@ def generate_embedded_bytecode_source(build_dir, script_path):
     return output_cpp
 
 
+def resolve_output_name(script_path):
+    """Use the input script filename as the final bundle name."""
+    script_file = Path(script_path)
+    name = script_file.name
+    return name or "shellvm_bundle"
+
+
+def cleanup_object_files(build_dir):
+    """Delete intermediate object files after a successful build."""
+    for obj_file in build_dir.rglob("*.o"):
+        try:
+            obj_file.unlink()
+        except OSError:
+            pass
+
+
 def prepare_build_dir(build_dir):
     """Prepare the build directory."""
     if build_dir.exists():
@@ -190,7 +205,7 @@ def prepare_build_dir(build_dir):
     print(f"[PREPARE] Build directory: {build_dir}")
 
 
-def generate_android_mk(build_dir, embedded_cpp):
+def generate_android_mk(build_dir, embedded_cpp, output_name):
     """Generate Android.mk."""
     android_mk = build_dir / "jni" / "Android.mk"
     android_mk.parent.mkdir(parents=True, exist_ok=True)
@@ -210,7 +225,7 @@ include $(BUILD_STATIC_LIBRARY)
 
 # Shell-VM bundled runner
 include $(CLEAR_VARS)
-LOCAL_MODULE := {BUNDLE_OUTPUT}
+LOCAL_MODULE := {output_name}
 LOCAL_SRC_FILES := {PROJECT_ROOT / EMBED_RUNNER_SOURCE} \\
                    {embedded_cpp}
 LOCAL_C_INCLUDES := {PROJECT_ROOT / 'include'}
@@ -242,7 +257,7 @@ APP_PIE := true
     print(f"[GENERATE] {app_mk}")
 
 
-def build_with_ndk_build(build_dir, embedded_cpp, abis=None):
+def build_with_ndk_build(build_dir, embedded_cpp, output_name, abis=None):
     """Build with ndk-build."""
     ndk_build = find_ndk_build()
     if not ndk_build:
@@ -252,7 +267,7 @@ def build_with_ndk_build(build_dir, embedded_cpp, abis=None):
     print(f"[INFO] Using NDK: {NDK_PATH}")
     print(f"[INFO] Using ndk-build: {ndk_build}")
 
-    generate_android_mk(build_dir, embedded_cpp)
+    generate_android_mk(build_dir, embedded_cpp, output_name)
     generate_application_mk(build_dir, abis)
 
     cmd = [
@@ -265,7 +280,7 @@ def build_with_ndk_build(build_dir, embedded_cpp, abis=None):
     return run_command(cmd, cwd=str(build_dir))
 
 
-def build_with_clang_directly(build_dir, embedded_cpp, abis=None):
+def build_with_clang_directly(build_dir, embedded_cpp, output_name, abis=None):
     """Build directly with clang++ when ndk-build is unavailable."""
     clang, bin_dir = find_clang()
     if not clang:
@@ -332,13 +347,19 @@ def build_with_clang_directly(build_dir, embedded_cpp, abis=None):
             continue
 
         # Link
-        output = abi_dir / BUNDLE_OUTPUT
+        output = abi_dir / output_name
         link_flags = [f"--target={target}", "-pie", "-llog", "-static-libstdc++"]
         cmd = [clang] + link_flags + obj_files + ["-o", str(output)]
         if not run_command(cmd):
             print(f"[ERROR] Link failed: {abi}")
             success = False
             continue
+
+        for obj_file in obj_files:
+            try:
+                Path(obj_file).unlink(missing_ok=True)
+            except OSError:
+                pass
 
         print(f"[OK] {abi}: {output}")
 
@@ -362,12 +383,15 @@ def build(abus=None, use_ndk_build=True, script_path=SAFE_SCRIPT):
     if not embedded_cpp:
         return False
 
+    output_name = resolve_output_name(script_path)
+
     if use_ndk_build:
-        result = build_with_ndk_build(build_dir, embedded_cpp, abus)
+        result = build_with_ndk_build(build_dir, embedded_cpp, output_name, abus)
     else:
-        result = build_with_clang_directly(build_dir, embedded_cpp, abus)
+        result = build_with_clang_directly(build_dir, embedded_cpp, output_name, abus)
 
     if result:
+        cleanup_object_files(build_dir)
         print()
         print("=" * 60)
         print("[DONE] Build succeeded")
@@ -375,22 +399,22 @@ def build(abus=None, use_ndk_build=True, script_path=SAFE_SCRIPT):
         print()
         print("Generated bundles:")
         for abi in (abus or TARGET_ABIS):
-            exe = build_dir / "libs" / abi / BUNDLE_OUTPUT
+            exe = build_dir / "libs" / abi / output_name
             if exe.exists():
                 size = exe.stat().st_size
                 print(f"  - {exe} ({size:,} bytes)")
         print()
         selected_abi = next(
-            (abi for abi in (abus or TARGET_ABIS) if (build_dir / "libs" / abi / BUNDLE_OUTPUT).exists()),
+            (abi for abi in (abus or TARGET_ABIS) if (build_dir / "libs" / abi / output_name).exists()),
             (abus or TARGET_ABIS)[0],
         )
         script_name = Path(script_path).name
         print("Push to device and test:")
-        print(f'  adb push "build_android/libs/{selected_abi}/{BUNDLE_OUTPUT}" /data/local/tmp/')
+        print(f'  adb push "build_android/libs/{selected_abi}/{output_name}" /data/local/tmp/')
         print('  adb shell')
         print('  cd /data/local/tmp')
-        print(f'  chmod +x {BUNDLE_OUTPUT}')
-        print(f'  ./{BUNDLE_OUTPUT}')
+        print(f'  chmod +x "{output_name}"')
+        print(f'  ./"{output_name}"')
         print(f'  # embedded script: {script_name}')
     else:
         print()

@@ -10,7 +10,7 @@
 
 # Shell-VM
 
-Shell-VM 是一个将 Shell 脚本编译为字节码并由 C++ 虚拟机执行的项目，当前支持将解释器与脚本一并打包为 Android 单文件可执行程序 `shellvm_bundle`。
+Shell-VM 是一个将 Shell 脚本编译为字节码并由 C++ 虚拟机执行的项目，当前支持将解释器与脚本一并打包为 Android 单文件可执行程序，最终产物名默认与输入脚本文件名一致。
 
 ## 功能概览
 
@@ -59,14 +59,14 @@ python build_android.py --clang --script .\your_script.sh
 生成后的可执行文件位于：
 
 ```text
-build_android/libs/arm64-v8a/shellvm_bundle
+build_android/libs/arm64-v8a/<输入脚本文件名>
 ```
 
 ## 设备运行
 
 ```bash
-adb push "build_android/libs/arm64-v8a/shellvm_bundle" /data/local/tmp/shellvm_bundle
-adb shell "chmod +x /data/local/tmp/shellvm_bundle && /data/local/tmp/shellvm_bundle"
+adb push "build_android/libs/arm64-v8a/your_script.sh" /data/local/tmp/your_script.sh
+adb shell "chmod +x /data/local/tmp/your_script.sh && /data/local/tmp/your_script.sh"
 ```
 
 ## 开发说明

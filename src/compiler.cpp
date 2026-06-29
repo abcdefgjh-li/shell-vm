@@ -24,6 +24,9 @@
 
 namespace shellvm {
 
+static constexpr char kLiteralMarkerStart = '\x1D';
+static constexpr char kLiteralMarkerEnd = '\x1E';
+
 // ============================================================================
 // 编译辅助状态（文件作用域）
 // ============================================================================
@@ -77,6 +80,18 @@ static size_t byteOffsetForInstructionIndex(const InstructionList& instructions,
 
 static size_t currentByteOffset(const InstructionList& instructions) {
     return byteOffsetForInstructionIndex(instructions, instructions.size());
+}
+
+static void collectPipelineCommands(ASTNodePtr node, std::vector<ASTNodePtr>& commands) {
+    if (!node) {
+        return;
+    }
+    if (node->type == NodeType::Pipeline) {
+        collectPipelineCommands(node->left, commands);
+        collectPipelineCommands(node->right, commands);
+        return;
+    }
+    commands.push_back(node);
 }
 
 static bool containsPipelineOrRedirection(ASTNodePtr node) {
@@ -406,6 +421,17 @@ Token Lexer::nextToken() {
         }
     }
 
+    // 以 + 开头的格式参数（如 +%s, +"%Y-%m-%d %H:%M:%S"）
+    if (c == '+' && pos_ + 1 < source_.length()) {
+        char next = peek();
+        if (!isspace(static_cast<unsigned char>(next)) &&
+            next != ';' && next != '|' && next != '&' &&
+            next != '<' && next != '>' && next != ')' &&
+            next != '(') {
+            return readPlusWord();
+        }
+    }
+
     // 操作符
     return readOperator();
 }
@@ -586,6 +612,11 @@ Token Lexer::readString(char quote) {
         advance(); // 读取结尾的引号
     }
 
+    if (quote == '\'') {
+        value.insert(value.begin(), kLiteralMarkerStart);
+        value.push_back(kLiteralMarkerEnd);
+    }
+
     return Token(TokenType::String, value, startLine, startCol);
 }
 
@@ -718,6 +749,42 @@ Token Lexer::readOption() {
         if (isalnum(static_cast<unsigned char>(c)) || c == '_' || c == '-') {
             value += advance();
         } else {
+            break;
+        }
+    }
+
+    return Token(TokenType::Identifier, value, startLine, startCol);
+}
+
+Token Lexer::readPlusWord() {
+    std::string value;
+    int startLine = line_;
+    int startCol = column_;
+
+    value += advance(); // '+'
+
+    while (pos_ < source_.length()) {
+        char c = current();
+        if (isspace(static_cast<unsigned char>(c)) ||
+            c == ';' || c == '|' || c == '&' ||
+            c == '<' || c == '>' || c == '(' || c == ')') {
+            break;
+        }
+
+        value += advance();
+
+        if (c == '"' || c == '\'') {
+            char quote = c;
+            while (pos_ < source_.length()) {
+                char inner = advance();
+                value += inner;
+                if (inner == quote) {
+                    break;
+                }
+                if (inner == '\\' && pos_ < source_.length()) {
+                    value += advance();
+                }
+            }
             break;
         }
     }
@@ -1301,6 +1368,12 @@ ASTNodePtr Parser::parsePipeline() {
 }
 
 ASTNodePtr Parser::parseCommand() {
+    if (match(TokenType::OP_Not)) {
+        auto node = std::make_shared<ASTNode>(NodeType::UnaryOp, current_.line);
+        node->op = TokenType::OP_Not;
+        node->left = parseCommand();
+        return node;
+    }
     return parseSimpleCommand();
 }
 
@@ -2171,6 +2244,10 @@ void Compiler::compileNode(ASTNodePtr node, InstructionList& instructions) {
             compileBinaryOp(node, instructions);
             break;
 
+        case NodeType::UnaryOp:
+            compileUnaryOp(node, instructions);
+            break;
+
         case NodeType::IfStatement:
             compileIfStatement(node, instructions);
             break;
@@ -2371,18 +2448,59 @@ void Compiler::compileCommandSubstitution(ASTNodePtr node, InstructionList& inst
 }
 
 void Compiler::compilePipeline(ASTNodePtr node, InstructionList& instructions) {
-    // 编译左侧命令
-    compileNode(node->left, instructions);
-    // 编译右侧命令
-    compileNode(node->right, instructions);
-    // 执行管道操作
-    instructions.push_back(Instruction(OpCode::PIPE));
+    std::vector<ASTNodePtr> commands;
+    collectPipelineCommands(node, commands);
+
+    bool allSimpleCommands = !commands.empty();
+    for (const auto& command : commands) {
+        if (!command || command->type != NodeType::Command || !command->redirections.empty()) {
+            allSimpleCommands = false;
+            break;
+        }
+    }
+
+    if (!allSimpleCommands) {
+        if (node->left) {
+            compileNode(node->left, instructions);
+        }
+        if (node->right) {
+            compileNode(node->right, instructions);
+        }
+        instructions.push_back(Instruction(OpCode::PIPE));
+        return;
+    }
+
+    Instruction cmdInst(OpCode::CMD);
+    cmdInst.addString("__shellvm_pipeline__");
+    size_t argCountOffset = cmdInst.operands.size();
+    cmdInst.addByte(0);
+
+    uint8_t argCount = 0;
+    cmdInst.addString(std::to_string(commands.size()));
+    ++argCount;
+
+    for (const auto& command : commands) {
+        cmdInst.addString(command->value);
+        ++argCount;
+        cmdInst.addString(std::to_string(command->children.size()));
+        ++argCount;
+        for (const auto& child : command->children) {
+            cmdInst.addString(nodeToRawString(child));
+            ++argCount;
+        }
+    }
+
+    cmdInst.operands[argCountOffset] = argCount;
+    instructions.push_back(cmdInst);
 }
 
 void Compiler::compileAssignment(ASTNodePtr node, InstructionList& instructions) {
     // 编译右值
     if (node->right) {
         compileNode(node->right, instructions);
+        if (node->right->type == NodeType::Literal && node->right->literalValue.isString()) {
+            instructions.push_back(Instruction(OpCode::STR_EXPAND));
+        }
     } else {
         instructions.push_back(Instruction(OpCode::PUSH_NULL));
     }
@@ -2476,6 +2594,33 @@ void Compiler::compileBinaryOp(ASTNodePtr node, InstructionList& instructions) {
         default:
             break;
     }
+}
+
+void Compiler::compileUnaryOp(ASTNodePtr node, InstructionList& instructions) {
+    if (!node || !node->left) {
+        instructions.push_back(Instruction(OpCode::PUSH_INT).addInt64(1));
+        return;
+    }
+
+    if (node->op == TokenType::OP_Not) {
+        compileNode(node->left, instructions);
+        instructions.push_back(Instruction(OpCode::PUSH_INT).addInt64(0));
+        instructions.push_back(Instruction(OpCode::EQ));
+
+        size_t childFailedJump = instructions.size();
+        instructions.push_back(Instruction(OpCode::JUMP_IF_NOT).addInt32(0));
+
+        instructions.push_back(Instruction(OpCode::PUSH_INT).addInt64(1));
+        size_t endJump = instructions.size();
+        instructions.push_back(Instruction(OpCode::JUMP).addInt32(0));
+
+        patchJump(instructions, childFailedJump, instructions.size());
+        instructions.push_back(Instruction(OpCode::PUSH_INT).addInt64(0));
+        patchJump(instructions, endJump, instructions.size());
+        return;
+    }
+
+    compileNode(node->left, instructions);
 }
 
 void Compiler::compileIfStatement(ASTNodePtr node, InstructionList& instructions) {
@@ -3537,6 +3682,9 @@ std::string Compiler::disassemble(const Bytecode& bytecode) {
                 oss << "STR_SPLIT \"" << delim << "\"";
                 break;
             }
+            case OpCode::STR_EXPAND:
+                oss << "STR_EXPAND";
+                break;
             case OpCode::ARR_NEW:
                 oss << "ARR_NEW";
                 break;

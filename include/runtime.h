@@ -130,6 +130,7 @@ public:
     void setEnv(const std::string& name, const std::string& value);
     std::string getCwd() const;
     bool setCwd(const std::string& path);
+    static std::string expandVariables(const std::string& str, VM& vm);
 
 private:
     // 初始化内置命令
@@ -158,7 +159,6 @@ private:
     static CommandResult builtinContinue(const std::vector<std::string>& args, VM& vm);
 
     // 辅助函数
-    static std::string expandVariables(const std::string& str, VM& vm);
     static std::vector<std::string> parseTestExpression(const std::vector<std::string>& args);
 
 private:

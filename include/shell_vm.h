@@ -218,6 +218,7 @@ enum class OpCode : uint8_t {
     STR_LEN = 0x71,        // 字符串长度
     STR_SUB = 0x72,        // 子字符串
     STR_SPLIT = 0x73,      // 字符串分割
+    STR_EXPAND = 0x74,     // 运行时字符串展开
 
     // 数组操作 (0x80-0x8F)
     ARR_NEW = 0x80,        // 创建数组
